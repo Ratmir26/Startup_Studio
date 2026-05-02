@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Валидатор идей — проверь свою гипотезу за 2 минуты</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-card: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff; --text-secondary: #a0a0b0; --accent: #00ffcc;
+            --accent-glow: rgba(0, 255, 204, 0.3); --card-border: rgba(255, 255, 255, 0.08);
+            --yes-color: #00ff88; --no-color: #ff4466; --warning-color: #ffaa00;
+        }
+        body.light-theme {
+            --bg-primary: #ffffff; --bg-secondary: #f5f5fa; --bg-card: rgba(0, 0, 0, 0.03);
+            --text-primary: #1a1a2e; --text-secondary: #5a5a6a; --card-border: rgba(0, 0, 0, 0.08);
+        }
+        body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; transition: background 0.3s; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        header { padding: 30px 0; position: relative; z-index: 100; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-gear { width: 50px; height: 50px; animation: rotate 20s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: 3px; background: linear-gradient(90deg, var(--accent), #00ccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .theme-toggle { background: var(--bg-card); border: 1px solid var(--card-border); color: var(--accent); padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: all 0.3s; backdrop-filter: blur(10px); }
+        .theme-toggle:hover { background: var(--accent-glow); transform: scale(1.05); }
+
+        .hero-section { text-align: center; padding: 80px 0 60px; }
+        .hero-title { font-size: 2.2rem; max-width: 800px; margin: 0 auto 20px; line-height: 1.4; font-weight: 700; }
+        .subtitle { font-size: 1.4rem; color: var(--text-secondary); margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.8; }
+        .cta-btn { background: linear-gradient(135deg, var(--accent), #00ccff); color: #0a0a0f; border: none; padding: 18px 40px; border-radius: 50px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; animation: pulse-cta 2s ease-in-out infinite; }
+        @keyframes pulse-cta { 0%, 100% { box-shadow: 0 0 20px var(--accent-glow); } 50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px rgba(0, 255, 204, 0.5); } }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px var(--accent-glow); }
+        .how-it-works { margin-top: 50px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; font-size: 1rem; color: var(--text-secondary); }
+        .social-proof { margin-top: 30px; color: var(--text-secondary); font-size: 0.95rem; opacity: 0.8; }
+
+        .idea-input-section { padding: 40px 0 60px; text-align: center; }
+        .idea-input-wrapper { max-width: 700px; margin: 0 auto; position: relative; }
+        #ideaInput { width: 100%; padding: 20px 30px; background: var(--bg-card); border: 2px solid var(--card-border); border-radius: 50px; color: var(--text-primary); font-size: 1.2rem; transition: all 0.3s; backdrop-filter: blur(10px); }
+        #ideaInput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); }
+        .idea-label { display: block; margin-bottom: 15px; color: var(--text-secondary); font-size: 1rem; letter-spacing: 1px; }
+        .idea-hint { margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; }
+
+        .section-title { font-size: 2rem; margin-bottom: 40px; text-align: center; letter-spacing: 2px; position: relative; padding-bottom: 15px; }
+        .section-title::after { content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+        .problem-section { padding: 80px 0; }
+        .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 50px; }
+        .problem-card { background: var(--bg-card); border: 1px solid var(--card-border); border-radius: 20px; padding: 40px 30px; backdrop-filter: blur(10px); transition: all 0.4s; position: relative; overflow: hidden; animation: fadeInUp 0.6s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .problem-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 40px var(--accent-glow); }
+        .problem-icon { font-size: 3rem; margin-bottom: 20px; display: block; }
+        .problem-card h3 { color: var(--accent); margin-bottom: 15px; font-size: 1.2rem; letter-spacing: 1px; }
+        .problem-card p { color: var(--text-secondary); font-size: 1.1rem; line-height: 1.8; }
+
+        .validation-section { padding: 40px 0 60px; text-align: center; }
+        .validation-toggle { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .toggle-label { font-size: 1.2rem; color: var(--text-secondary); }
+        .toggle-btn { position: relative; width: 200px; height: 60px; background: var(--bg-secondary); border: 2px solid var(--card-border); border-radius: 30px; cursor: pointer; transition: all 0.4s; overflow: hidden; }
+        .toggle-slider { position: absolute; top: 5px; left: 5px; width: calc(50% - 5px); height: calc(100% - 10px); background: var(--accent); border-radius: 25px; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .toggle-btn.yes-active .toggle-slider { left: calc(50% + 5px); background: var(--yes-color); }
+        .toggle-btn.no-active .toggle-slider { left: 5px; background: var(--no-color); }
+        .toggle-options { display: flex; justify-content: space-between; padding: 0 20px; height: 100%; align-items: center; font-weight: 700; font-size: 1rem; z-index: 1; position: relative; }
+
+        .verdict-section { padding: 40px 0; text-align: center; }
+        #verdict { display: inline-block; padding: 20px 40px; border-radius: 50px; font-size: 1.5rem; font-weight: 700; background: var(--bg-card); border: 2px solid var(--card-border); transition: all 0.5s; min-width: 300px; }
+        #verdict.positive { border-color: var(--yes-color); color: var(--yes-color); box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+        #verdict.negative { border-color: var(--no-color); color: var(--no-color); box-shadow: 0 0 30px rgba(255, 68, 102, 0.3); }
+        #verdict.neutral { border-color: var(--warning-color); color: var(--warning-color); box-shadow: 0 0 30px rgba(255, 170, 0, 0.3); }
+        @keyframes verdictPop { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+
+        .arguments-section { padding: 80px 0; }
+        .arguments-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 50px; margin-bottom: 40px; }
+        .arguments-column h3 { font-size: 1.8rem; margin-bottom: 30px; text-align: center; padding-bottom: 15px; border-bottom: 2px solid var(--accent); }
+        .arguments-column.pro h3 { color: var(--yes-color); border-color: var(--yes-color); }
+        .arguments-column.con h3 { color: var(--no-color); border-color: var(--no-color); }
+        .argument-card { background: var(--bg-card); border: 1px solid var(--card-border); border-radius: 15px; padding: 20px 25px; margin-bottom: 15px; transition: all 0.3s; cursor: pointer; animation: fadeInUp 0.4s ease-out; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .argument-card.selected { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); background: rgba(0, 255, 204, 0.05); }
+        .argument-text { flex: 1; color: var(--text-primary); }
+        .argument-card input { background: transparent; border: none; color: var(--text-primary); font-size: 1rem; width: 100%; outline: none; border-bottom: 1px dashed var(--accent); flex: 1; }
+        .delete-argument-btn { background: transparent; border: 1px solid var(--no-color); color: var(--no-color); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0; }
+        .delete-argument-btn:hover { background: var(--no-color); color: white; }
+        .add-argument-btn { width: 100%; padding: 20px; background: var(--bg-card); border: 2px dashed var(--accent); border-radius: 15px; color: var(--accent); font-size: 1.2rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .add-argument-btn:hover { background: var(--accent-glow); transform: scale(1.02); }
+
+        .check-hypothesis-section { text-align: center; padding: 20px 0 60px; }
+        .check-hypothesis-btn { background: linear-gradient(135deg, #ffaa00, #ff6600); color: #fff; border: none; padding: 18px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .check-hypothesis-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(255, 170, 0, 0.4); }
+
+        .share-section { padding: 60px 0; text-align: center; }
+        .share-buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .share-btn { background: var(--bg-card); border: 1px solid var(--accent); color: var(--accent); padding: 15px 30px; border-radius: 50px; font-size: 1rem; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
+        .share-btn:hover { background: var(--accent-glow); transform: translateY(-3px); box-shadow: 0 10px 30px var(--accent-glow); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-secondary); border: 1px solid var(--accent); border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; box-shadow: 0 0 50px var(--accent-glow); animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-content h3 { color: var(--accent); margin-bottom: 20px; font-size: 1.5rem; }
+        .modal-content input, .modal-content select { width: 100%; padding: 15px; background: var(--bg-card); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-primary); font-size: 1rem; margin-bottom: 20px; }
+        .modal-buttons { display: flex; gap: 15px; }
+        .modal-btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .modal-btn.confirm { background: var(--accent); color: var(--bg-primary); }
+        .modal-btn.cancel { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--card-border); }
+
+        footer { padding: 80px 0; text-align: center; border-top: 1px solid var(--card-border); }
+        .progress-container { max-width: 600px; margin: 0 auto 40px; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--text-secondary); font-size: 1.1rem; }
+        .progress-bar-wrapper { background: var(--bg-card); border-radius: 50px; height: 30px; overflow: hidden; border: 1px solid var(--card-border); }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--yes-color), var(--accent)); border-radius: 50px; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: 700; min-width: 50px; }
+        .confidence-indicator { margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; }
+        .footer-stats { display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; }
+        .stat-item { color: var(--text-secondary); }
+        .stat-item span { color: var(--accent); font-size: 1.5rem; font-weight: 700; }
+        #chartCanvas { background: var(--bg-card); border: 1px solid var(--card-border); }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; } .hero-title { font-size: 1.6rem; } .subtitle { font-size: 1.1rem; }
+            .arguments-grid { grid-template-columns: 1fr; gap: 30px; } .problem-card { padding: 30px 20px; }
+            .argument-card { flex-direction: column; align-items: stretch; } .delete-argument-btn { align-self: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <svg class="logo-gear" viewBox="0 0 100 100" fill="none">
+                        <path d="M30 20 L45 15 L55 25 L50 35 L40 30 Z" fill="var(--accent)"/>
+                        <path d="M70 20 L85 15 L95 25 L90 35 L80 30 Z" fill="var(--accent)" transform="rotate(120 50 50)"/>
+                        <path d="M70 80 L85 85 L95 75 L90 65 L80 70 Z" fill="var(--accent)" transform="rotate(240 50 50)"/>
+                        <path d="M30 80 L45 85 L55 75 L50 65 L40 70 Z" fill="var(--accent)" transform="rotate(60 50 50)"/>
+                        <circle cx="50" cy="50" r="15" fill="var(--bg-primary)"/>
+                        <circle cx="50" cy="50" r="8" fill="var(--accent)"/>
+                    </svg>
+                    <h1>ВАЛИДАТОР ИДЕЙ</h1>
+                </div>
+                <button class="theme-toggle" id="themeToggle">☀️ СВЕТЛАЯ</button>
+            </div>
+        </header>
+
+        <!-- ПРОДАЮЩИЙ HERO -->
+        <section class="hero-section">
+            <h2 class="hero-title">Проверь свою идею за 2 минуты<br>и пойми — делать или забить</h2>
+            <p class="subtitle">Без кода, без денег, без запуска.<br>Просто добавь аргументы — и получи честный вердикт</p>
+            <button class="cta-btn" id="ctaBtn">🚀 Проверить идею</button>
+            <p style="margin-top:15px;color:var(--text-secondary);font-size:0.9rem;">⏱ Займёт меньше 2 минут</p>
+            <div class="how-it-works"><div>⚡ Вводишь идею</div><div>⚖️ Сравниваешь ЗА / ПРОТИВ</div><div>📊 Получаешь результат</div></div>
+            <div class="social-proof">Помогает не тратить время на слабые идеи</div>
+        </section>
+
+        <!-- ДЛЯ КОГО -->
+        <section style="text-align:center;padding:40px 0;">
+            <h2 class="section-title">ДЛЯ КОГО ЭТО</h2>
+            <p style="color:var(--text-secondary);max-width:600px;margin:0 auto;">Для тех, кто хочет запустить идею, но не уверен — стоит ли тратить время, силы и деньги</p>
+        </section>
+
+        <!-- ДО / ПОСЛЕ -->
+        <section style="padding:60px 0;text-align:center;">
+            <h2 class="section-title">ДО / ПОСЛЕ</h2>
+            <div style="display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-top:40px;">
+                <div style="max-width:350px;background:var(--bg-card);border:1px solid var(--card-border);border-radius:20px;padding:30px;"><h3 style="color:var(--no-color);margin-bottom:20px;">❌ ДО</h3><p style="color:var(--text-secondary);line-height:1.7;">Думаешь, что идея крутая<br>Тратишь время<br>Начинаешь делать<br>Через неделю понимаешь — не работает</p></div>
+                <div style="max-width:350px;background:var(--bg-card);border:1px solid var(--card-border);border-radius:20px;padding:30px;"><h3 style="color:var(--yes-color);margin-bottom:20px;">✅ ПОСЛЕ</h3><p style="color:var(--text-secondary);line-height:1.7;">Быстро проверяешь идею<br>Видишь слабые места<br>Понимаешь риски<br>Не тратишь время впустую</p></div>
+            </div>
+        </section>
+
+        <!-- ПОЧЕМУ ЭТО ВАЖНО -->
+        <section style="padding:60px 0;text-align:center;">
+            <h2 class="section-title">ПОЧЕМУ ЭТО ВАЖНО</h2>
+            <p style="max-width:700px;margin:0 auto;color:var(--text-secondary);line-height:1.8;font-size:1.1rem;">Большинство идей умирают не потому что они плохие,<br>а потому что их не проверили вовремя.<br><br>Люди тратят недели или месяцы на то,<br>что можно было понять за 5 минут.</p>
+        </section>
+
+        <!-- КАК ЭТО РАБОТАЕТ -->
+        <section style="padding:60px 0;text-align:center;">
+            <h2 class="section-title">КАК ЭТО РАБОТАЕТ</h2>
+            <div style="display:flex;justify-content:center;gap:30px;flex-wrap:wrap;margin-top:40px;">
+                <div style="max-width:250px;"><h3>1. Введи идею</h3><p style="color:var(--text-secondary);">Опиши, что ты хочешь сделать</p></div>
+                <div style="max-width:250px;"><h3>2. Добавь аргументы</h3><p style="color:var(--text-secondary);">ЗА и ПРОТИВ твоей идеи</p></div>
+                <div style="max-width:250px;"><h3>3. Получи вердикт</h3><p style="color:var(--text-secondary);">Система покажет реальную картину</p></div>
+            </div>
+        </section>
+
+        <!-- IDEA INPUT -->
+        <section class="idea-input-section" id="ideaSection">
+            <label class="idea-label">ТВОЯ ИДЕЯ</label>
+            <div class="idea-input-wrapper"><input type="text" id="ideaInput" placeholder="Например: Запустить приложение для школьников, Открыть кофейню, Сделать телеграм-бота" maxlength="150"></div>
+            <div style="margin-top:15px;"><button id="demoIdeaBtn" class="share-btn">⚡ Попробовать на примере</button></div>
+            <div class="idea-hint">Пример: "Сократить уроки и дать ученикам больше свободы"</div>
+        </section>
+
+        <!-- PROBLEM -->
+        <section class="problem-section">
+            <h2 class="section-title">ПРОБЛЕМА</h2>
+            <div class="problem-grid">
+                <div class="problem-card"><span class="problem-icon">👁️</span><h3>ЧТО ВИЖУ</h3><p>Люди тратят время на идеи, которые не работают. Без проверки — это русская рулетка</p></div>
+                <div class="problem-card"><span class="problem-icon">👤</span><h3>КТО СТРАДАЕТ</h3><p>Стартаперы, студенты, предприниматели — все, у кого есть идея</p></div>
+                <div class="problem-card"><span class="problem-icon">❓</span><h3>КАК СЕЙЧАС РЕШАЮТ</h3><p>Никак. Просто начинают делать и надеются на удачу</p></div>
+            </div>
+        </section>
+
+        <!-- VALIDATION TOGGLE -->
+        <section class="validation-section">
+            <div class="validation-toggle"><span class="toggle-label">ПРОВЕРИЛ ЛИ?</span>
+                <div class="toggle-btn" id="validationToggle"><div class="toggle-slider"></div><div class="toggle-options"><span class="toggle-option yes-text">ДА</span><span class="toggle-option no-text">НЕТ</span></div><div class="toggle-success">✓</div></div>
+            </div>
+        </section>
+
+        <!-- VERDICT -->
+        <section class="verdict-section"><div id="verdict" class="neutral">🤔 Нужно больше данных</div><div class="confidence-indicator" id="confidenceText"></div></section>
+
+        <!-- ARGUMENTS -->
+        <section class="arguments-section">
+            <h2 class="section-title">АРГУМЕНТЫ</h2>
+            <div class="arguments-grid">
+                <div class="arguments-column pro"><h3>ПОДТВЕРЖДАЕТ БОЛЬ</h3><div class="arguments-list" id="proList"></div><button class="add-argument-btn" data-type="pro">+ ДОБАВИТЬ АРГУМЕНТ ЗА</button></div>
+                <div class="arguments-column con"><h3>ЛОМАЕТ ИДЕЮ</h3><div class="arguments-list" id="conList"></div><button class="add-argument-btn" data-type="con">+ ДОБАВИТЬ АРГУМЕНТ ПРОТИВ</button></div>
+            </div>
+        </section>
+
+        <!-- AI GENERATE -->
+        <section style="text-align:center;padding:20px 0 30px;">
+            <button class="share-btn" id="aiGenerateBtn" style="background:linear-gradient(135deg,#a855f7,#6366f1);color:#fff;border:none;font-size:1.1rem;">🧠 Сгенерировать аргументы</button>
+            <p style="color:var(--text-secondary);margin-top:8px;font-size:0.85rem;">Нейросеть проанализирует идею (MVP)</p>
+        </section>
+
+        <!-- CHECK HYPOTHESIS -->
+        <section class="check-hypothesis-section"><button class="check-hypothesis-btn" id="checkHypothesisBtn">🔍 Проверить гипотезу (опрос)</button></section>
+
+        <!-- SHARE -->
+        <section class="share-section">
+            <h2 class="section-title" style="margin-bottom:30px;">ПОДЕЛИТЬСЯ / ЭКСПОРТ</h2>
+            <div class="share-buttons">
+                <button class="share-btn" id="shareIdeaBtn">📤 Поделиться идеей</button>
+                <button class="share-btn" id="copyArgsBtn">📋 Копировать аргументы</button>
+                <button class="share-btn" id="downloadBtn">💾 Скачать TXT</button>
+                <button class="share-btn" id="exportJsonBtn">📦 Экспорт JSON</button>
+                <button class="share-btn" id="importJsonBtn">📥 Импорт JSON</button>
+            </div>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="progress-container"><div class="progress-label"><span>Валидация идеи</span><span id="progressPercent">50%</span></div><div class="progress-bar-wrapper"><div class="progress-bar" id="progressBar" style="width:50%">50%</div></div></div>
+            <canvas id="chartCanvas" height="40" style="max-width:600px;width:100%;margin:15px auto 0;border-radius:10px;"></canvas>
+            <div style="text-align:center;margin-top:30px;"><p style="color:var(--text-secondary);margin-bottom:10px;">🗳️ Что думаешь об этой идее?</p><button class="share-btn" id="voteYes" style="margin:5px;">👍 Поддерживаю</button><button class="share-btn" id="voteNo" style="margin:5px;">👎 Не верю</button><p id="voteResult" style="margin-top:10px;color:var(--text-secondary);font-size:0.9rem;"></p></div>
+            <div class="footer-stats" style="margin-top:30px;"><div class="stat-item">Аргументов ЗА: <span id="proCount">0</span></div><div class="stat-item">Аргументов ПРОТИВ: <span id="conCount">0</span></div><div class="stat-item">Оценка: <span id="scoreDisplay">0</span></div></div>
+        </footer>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="argumentModal"><div class="modal-content"><h3>ДОБАВИТЬ АРГУМЕНТ</h3><input type="text" id="argumentInput" placeholder="Введите ваш аргумент..."><select id="typeSelect"><option value="pro">Подтверждает боль (ЗА)</option><option value="con">Ломает идею (ПРОТИВ)</option></select><div class="modal-buttons"><button class="modal-btn confirm" id="addArgumentBtn">ДОБАВИТЬ</button><button class="modal-btn cancel" id="cancelModalBtn">ОТМЕНА</button></div></div></div>
+    <div class="modal" id="confirmDeleteModal"><div class="modal-content" style="text-align:center;"><h3>Удалить аргумент?</h3><p id="deleteText" style="color:var(--text-secondary);margin:20px 0;"></p><div class="modal-buttons"><button class="modal-btn confirm" id="confirmDeleteBtn" style="background:var(--no-color);">УДАЛИТЬ</button><button class="modal-btn cancel" id="cancelDeleteBtn">ОТМЕНА</button></div></div></div>
+
+    <script>
+        (function() {
+            let audioCtx;
+            function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+            function playClick() { try { const ctx = getAudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.frequency.value = 1000; gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.05); osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.05); } catch(e) {} }
+            function vibrate(ms = 50) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+            let isDark = true, validationState = null, currentIdea = localStorage.getItem('currentIdea') || '';
+            let argumentsData = { pro: ["Засыпаю на первых двух уроках", "Нет времени даже на прогулку", "Прихожу домой только чтобы поспать", "Теряется интерес к учёбе из-за усталости", "Постоянный стресс и недосып ведут к болезням"], con: ["Без полных уроков не сдать ЕГЭ", "В школе и так мало часов по базе", 'Ученики выберут только "халяву"', "Учителя не успеют выдать программу", "Родители будут против свободного посещения"] };
+            let selectedCard = null, selectedDelete = { type: null, index: null }, longPressTimer = null;
+            let votes = JSON.parse(localStorage.getItem('votes')) || { yes: 0, no: 0 };
+
+            const $ = id => document.getElementById(id);
+            const themeToggleBtn = $('themeToggle'), validationToggle = $('validationToggle'), proList = $('proList'), conList = $('conList');
+            const argumentModal = $('argumentModal'), argumentInput = $('argumentInput'), typeSelect = $('typeSelect');
+            const progressBar = $('progressBar'), progressPercent = $('progressPercent'), proCountSpan = $('proCount'), conCountSpan = $('conCount'), scoreDisplay = $('scoreDisplay');
+            const confirmDeleteModal = $('confirmDeleteModal'), deleteText = $('deleteText'), verdictEl = $('verdict'), confidenceText = $('confidenceText'), ideaInput = $('ideaInput');
+
+            if (!localStorage.getItem('visited')) { setTimeout(() => alert('👋 Добро пожаловать!\n\n1. Введи свою идею\n2. Добавь аргументы ЗА и ПРОТИВ\n3. Посмотри вердикт\n4. Поделись результатом'), 500); localStorage.setItem('visited', 'true'); }
+
+            function applyTheme(d) { document.body.classList.toggle('light-theme', !d); themeToggleBtn.textContent = d ? '☀️ СВЕТЛАЯ' : '🌙 ТЁМНАЯ'; }
+            function toggleTheme() { playClick(); vibrate(); isDark = !isDark; applyTheme(isDark); localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
+            function updateValidationUI() { validationToggle.classList.remove('yes-active', 'no-active'); if (validationState === 'yes') validationToggle.classList.add('yes-active'); else if (validationState === 'no') validationToggle.classList.add('no-active'); }
+            function toggleValidation() { playClick(); vibrate(); validationState = validationState === 'yes' ? 'no' : validationState === 'no' ? null : 'yes'; updateValidationUI(); localStorage.setItem('validation', validationState); }
+
+            function getVerdict() {
+                const p = argumentsData.pro.length, c = argumentsData.con.length, t = p + c, s = p - c;
+                if (t === 0) return { verdict: '🤔 Добавь аргументы', className: 'neutral', confidence: 'Нет данных', score: s };
+                if (t < 3) return { verdict: '🤔 Нужно больше данных', className: 'neutral', confidence: 'Мало данных', score: s };
+                if (p > c * 1.5) return { verdict: '🚀 Идея перспективная!', className: 'positive', confidence: 'Достаточно данных', score: s };
+                if (c > p * 1.5) return { verdict: '❌ Идея слабая', className: 'negative', confidence: 'Достаточно данных', score: s };
+                if (s > 0) return { verdict: '👍 Скорее перспективная', className: 'positive', confidence: t >= 5 ? 'Достаточно данных' : 'Мало данных', score: s };
+                if (s < 0) return { verdict: '👎 Скорее слабая', className: 'negative', confidence: t >= 5 ? 'Достаточно данных' : 'Мало данных', score: s };
+                return { verdict: '⚖️ Равновесие', className: 'neutral', confidence: 'Нужно больше аргументов', score: s };
+            }
+
+            function updateVerdict() {
+                const v = getVerdict();
+                verdictEl.style.animation = 'none'; verdictEl.textContent = v.verdict; verdictEl.className = v.className;
+                void verdictEl.offsetWidth; verdictEl.style.animation = 'verdictPop 0.5s ease';
+                scoreDisplay.textContent = v.score; confidenceText.textContent = `Статус: ${v.confidence}`;
+            }
+
+            function createCardElement(type, text, index) {
+                const card = document.createElement('div'); card.className = 'argument-card'; card.dataset.type = type; card.dataset.index = index;
+                card.title = 'Двойной клик — редактировать'; const s = document.createElement('span'); s.className = 'argument-text'; s.textContent = text; card.appendChild(s);
+                const b = document.createElement('button'); b.className = 'delete-argument-btn'; b.innerHTML = '🗑';
+                b.addEventListener('click', e => { e.stopPropagation(); openDeleteConfirm(type, index, argumentsData[type][index]); });
+                card.appendChild(b); return card;
+            }
+
+            function renderAllArguments() { proList.innerHTML = ''; conList.innerHTML = ''; argumentsData.pro.forEach((t, i) => proList.appendChild(createCardElement('pro', t, i))); argumentsData.con.forEach((t, i) => conList.appendChild(createCardElement('con', t, i))); }
+            function saveArguments() { localStorage.setItem('arguments', JSON.stringify(argumentsData)); }
+
+            function drawChart() {
+                const canvas = $('chartCanvas'); if (!canvas) return;
+                const ctx = canvas.getContext('2d'), p = argumentsData.pro.length, c = argumentsData.con.length, t = p + c || 1;
+                const pw = (p / t) * canvas.width, cw = (c / t) * canvas.width;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#00ff88'; ctx.fillRect(0, 0, pw, canvas.height);
+                ctx.fillStyle = '#ff4466'; ctx.fillRect(pw, 0, cw, canvas.height);
+                ctx.fillStyle = '#fff'; ctx.font = '12px "Segoe UI", sans-serif'; ctx.textAlign = 'center';
+                if (p > 0) ctx.fillText(`👍 ${p}`, pw / 2, canvas.height / 2 + 4);
+                if (c > 0) ctx.fillText(`👎 ${c}`, pw + cw / 2, canvas.height / 2 + 4);
+            }
+
+            function updateProgress() { const p = argumentsData.pro.length, c = argumentsData.con.length, t = p + c, pc = t === 0 ? 50 : Math.round((p / t) * 100); progressBar.style.width = pc + '%'; progressBar.textContent = pc + '%'; progressPercent.textContent = pc + '%'; proCountSpan.textContent = p; conCountSpan.textContent = c; updateVerdict(); drawChart(); }
+
+            function openDeleteConfirm(type, index, text) { playClick(); vibrate(); selectedDelete = { type, index }; deleteText.textContent = `«${text}»`; confirmDeleteModal.classList.add('active'); }
+            function closeDeleteConfirm() { confirmDeleteModal.classList.remove('active'); selectedDelete = { type: null, index: null }; }
+            function confirmDelete() { if (!selectedDelete.type) return; playClick(); vibrate(); const { type, index } = selectedDelete; closeDeleteConfirm(); if (selectedCard?.type === type && selectedCard?.index === index) selectedCard = null; argumentsData[type].splice(index, 1); saveArguments(); renderAllArguments(); updateProgress(); }
+
+            function selectCard(type, index) { if (selectedCard) { const p = document.querySelector(`.argument-card[data-type="${selectedCard.type}"][data-index="${selectedCard.index}"]`); if (p) p.classList.remove('selected'); } selectedCard = { type, index }; const c = document.querySelector(`.argument-card[data-type="${type}"][data-index="${index}"]`); if (c) c.classList.add('selected'); playClick(); vibrate(30); }
+            function handleDoubleClick(e) { const card = e.target.closest('.argument-card'); if (!card) return; const type = card.dataset.type, index = parseInt(card.dataset.index), cur = argumentsData[type][index]; if (card.querySelector('input')) return; const ts = card.querySelector('.argument-text'), inp = document.createElement('input'); inp.type = 'text'; inp.value = cur; ts.replaceWith(inp); inp.focus(); function fin() { const n = inp.value.trim(); if (n && n !== cur) { argumentsData[type][index] = n; saveArguments(); updateProgress(); } const ns = document.createElement('span'); ns.className = 'argument-text'; ns.textContent = n || cur; inp.replaceWith(ns); } inp.addEventListener('blur', fin); inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } }); playClick(); }
+            function handleSingleClick(e) { const card = e.target.closest('.argument-card'); if (!card || e.target.tagName === 'INPUT' || e.target.closest('.delete-argument-btn')) return; selectCard(card.dataset.type, parseInt(card.dataset.index)); }
+            function handleTouchStart(e) { const card = e.target.closest('.argument-card'); if (!card) return; const type = card.dataset.type, index = parseInt(card.dataset.index); longPressTimer = setTimeout(() => { openDeleteConfirm(type, index, argumentsData[type][index]); vibrate(100); }, 600); }
+            function handleTouchEnd() { clearTimeout(longPressTimer); }
+
+            function openModal(pt = 'pro') { playClick(); typeSelect.value = pt; argumentInput.value = ''; argumentModal.classList.add('active'); argumentInput.focus(); }
+            function closeModal() { argumentModal.classList.remove('active'); }
+            function addArgumentFromModal() { const t = argumentInput.value.trim(); if (!t) return; playClick(); vibrate(); argumentsData[typeSelect.value].push(t); saveArguments(); renderAllArguments(); updateProgress(); closeModal(); }
+
+            ideaInput.addEventListener('input', () => { currentIdea = ideaInput.value; localStorage.setItem('currentIdea', currentIdea); });
+
+            function checkHypothesis() { playClick(); vibrate(); const q = ['Кто твоя целевая аудитория?', 'Как часто люди сталкиваются с этой проблемой?', 'Сколько людей готовы платить за решение?', 'Есть ли уже конкуренты?', 'Можно ли проверить идею за неделю?']; alert(`🔍 Проверка гипотезы:\n\nИдея: "${ideaInput.value.trim() || currentIdea || '(не указана)'}"\n\n➡️ ${q[Math.floor(Math.random() * q.length)]}`); }
+            function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => alert('✅ Скопировано!')).catch(() => prompt('Скопируйте:', text)); }
+
+            function shareIdea() { playClick(); const idea = ideaInput.value.trim() || currentIdea || 'Моя идея', { verdict } = getVerdict(); const t = `🚀 Проверка идеи\n\nИдея: ${idea}\n\nВердикт: ${verdict}\n\n👍 ЗА: ${argumentsData.pro.length}\n👎 ПРОТИВ: ${argumentsData.con.length}\n\nПопробуй сам:\n${window.location.href}`; if (navigator.share) navigator.share({ title: 'Валидатор идей', text: t }).catch(() => copyToClipboard(t)); else copyToClipboard(t); }
+            function copyArgs() { playClick(); vibrate(); const idea = ideaInput.value.trim() || currentIdea || 'Моя идея'; copyToClipboard(`Идея: ${idea}\nВердикт: ${getVerdict().verdict}\n\nЗА:\n${argumentsData.pro.map((t, i) => `${i+1}. ${t}`).join('\n')}\n\nПРОТИВ:\n${argumentsData.con.map((t, i) => `${i+1}. ${t}`).join('\n')}`); }
+            function downloadTxt() { playClick(); vibrate(); const idea = ideaInput.value.trim() || currentIdea || 'Моя идея', c = `Валидация идеи: "${idea}"\nВердикт: ${getVerdict().verdict}\n\nЗА:\n${argumentsData.pro.map(t => `+ ${t}`).join('\n')}\n\nПРОТИВ:\n${argumentsData.con.map(t => `- ${t}`).join('\n')}`; const b = new Blob([c], { type: 'text/plain' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'validation.txt'; a.click(); }
+            function exportJSON() { playClick(); vibrate(); const d = { idea: ideaInput.value.trim() || currentIdea, validationState, arguments: argumentsData, verdict: getVerdict(), exportedAt: new Date().toISOString() }, b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'validation-data.json'; a.click(); }
+            function importJSON(file) { const r = new FileReader(); r.onload = e => { try { const d = JSON.parse(e.target.result); if (d.arguments?.pro && d.arguments?.con) { argumentsData = d.arguments; saveArguments(); renderAllArguments(); updateProgress(); if (d.idea) { currentIdea = d.idea; ideaInput.value = d.idea; localStorage.setItem('currentIdea', d.idea); } if (d.validationState) { validationState = d.validationState; updateValidationUI(); localStorage.setItem('validation', d.validationState); } alert('✅ Данные импортированы!'); } else alert('❌ Неверный формат'); } catch { alert('❌ Ошибка чтения'); } }; r.readAsText(file); }
+            function updateVotes() { const t = votes.yes + votes.no, el = $('voteResult'); if (el) el.textContent = `👍 ${votes.yes} | 👎 ${votes.no} (${t} голосов)`; }
+
+            // Event bindings
+            themeToggleBtn.addEventListener('click', toggleTheme);
+            validationToggle.addEventListener('click', toggleValidation);
+            $('ctaBtn').addEventListener('click', () => { playClick(); vibrate(); $('ideaSection').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => ideaInput.focus(), 500); });
+            document.querySelectorAll('.add-argument-btn').forEach(b => b.addEventListener('click', () => openModal(b.dataset.type)));
+            $('addArgumentBtn').addEventListener('click', addArgumentFromModal);
+            $('cancelModalBtn').addEventListener('click', closeModal);
+            argumentModal.addEventListener('click', e => { if (e.target === argumentModal) closeModal(); });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (argumentModal.classList.contains('active')) closeModal(); if (confirmDeleteModal.classList.contains('active')) closeDeleteConfirm(); } if (e.key === 'Enter' && argumentModal.classList.contains('active')) addArgumentFromModal(); });
+            $('confirmDeleteBtn').addEventListener('click', confirmDelete);
+            $('cancelDeleteBtn').addEventListener('click', closeDeleteConfirm);
+            confirmDeleteModal.addEventListener('click', e => { if (e.target === confirmDeleteModal) closeDeleteConfirm(); });
+            proList.addEventListener('click', handleSingleClick); conList.addEventListener('click', handleSingleClick);
+            proList.addEventListener('dblclick', handleDoubleClick); conList.addEventListener('dblclick', handleDoubleClick);
+            proList.addEventListener('touchstart', handleTouchStart); conList.addEventListener('touchstart', handleTouchStart);
+            proList.addEventListener('touchend', handleTouchEnd); conList.addEventListener('touchend', handleTouchEnd);
+            document.addEventListener('click', e => { if (!e.target.closest('.argument-card') && !e.target.closest('.modal') && selectedCard) { const p = document.querySelector(`.argument-card[data-type="${selectedCard.type}"][data-index="${selectedCard.index}"]`); if (p) p.classList.remove('selected'); selectedCard = null; } });
+            $('shareIdeaBtn').addEventListener('click', shareIdea);
+            $('copyArgsBtn').addEventListener('click', copyArgs);
+            $('downloadBtn').addEventListener('click', downloadTxt);
+            $('exportJsonBtn').addEventListener('click', exportJSON);
+            $('importJsonBtn').addEventListener('click', () => { playClick(); $('importFileInput').click(); });
+            $('importFileInput').addEventListener('change', e => { if (e.target.files[0]) { importJSON(e.target.files[0]); e.target.value = ''; } });
+            $('checkHypothesisBtn').addEventListener('click', checkHypothesis);
+
+            // AI
+            // AI Generate через ChatGPT
+$('aiGenerateBtn').addEventListener('click', async () => {
+    const idea = ideaInput.value.trim();
+    if (!idea) { alert("⚠️ Сначала введи свою идею!"); ideaInput.focus(); return; }
+
+    const btn = $('aiGenerateBtn');
+    btn.textContent = '⏳ ChatGPT думает...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('http://localhost:3001/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea })
+        });
+
+        const data = await res.json();
+
+        if (data.pro && data.con) {
+            // Удаляем дубликаты перед добавлением
+            const uniquePro = data.pro.filter(arg => !argumentsData.pro.includes(arg));
+            const uniqueCon = data.con.filter(arg => !argumentsData.con.includes(arg));
+
+            argumentsData.pro.push(...uniquePro);
+            argumentsData.con.push(...uniqueCon);
+        }
+
+        saveArguments();
+        renderAllArguments();
+        updateProgress();
+
+        btn.textContent = '✅ ChatGPT проанализировал';
+        setTimeout(() => { btn.textContent = '🧠 Сгенерировать аргументы'; }, 2000);
+    } catch (error) {
+        console.log('Сервер не отвечает — локальная генерация');
+        const proOptions = [
+            `Решает реальную проблему: ${idea}`,
+            "Есть потенциал для масштабирования",
+            "Можно быстро запустить MVP",
+            "Низкий порог входа на рынок",
+            "Привлекает целевую аудиторию",
+            `Можно монетизировать через подписку`
+        ];
+        const conOptions = [
+            `Неясен реальный спрос на рынке`,
+            "Высокая конкуренция в нише",
+            "Сложно привлечь первых клиентов",
+            "Требуются начальные вложения",
+            "Долгий путь до окупаемости",
+            "Возможны юридические сложности"
+        ];
+
+        // Берём случайные 3 аргумента, исключая дубликаты
+        const newPro = proOptions.filter(a => !argumentsData.pro.includes(a)).sort(() => Math.random() - 0.5).slice(0, 3);
+        const newCon = conOptions.filter(a => !argumentsData.con.includes(a)).sort(() => Math.random() - 0.5).slice(0, 3);
+
+        argumentsData.pro.push(...newPro);
+        argumentsData.con.push(...newCon);
+
+        saveArguments();
+        renderAllArguments();
+        updateProgress();
+
+        btn.textContent = '🧠 Сгенерировать аргументы';
+        btn.disabled = false;
+    }
+});
+
+            // Demo
+            $('demoIdeaBtn').addEventListener('click', () => {
+                argumentsData = { pro: ["Ученики меньше устают", "Больше мотивации учиться", "Есть время на развитие", "Снижается стресс"], con: ["Сложно внедрить систему", "Родители могут быть против", "Риск падения уровня знаний"] };
+                ideaInput.value = "Сократить уроки и дать ученикам больше свободы"; currentIdea = ideaInput.value;
+                saveArguments(); renderAllArguments(); updateProgress();
+            });
+
+            // Voting
+            $('voteYes').onclick = () => { votes.yes++; localStorage.setItem('votes', JSON.stringify(votes)); updateVotes(); playClick(); vibrate(); };
+            $('voteNo').onclick = () => { votes.no++; localStorage.setItem('votes', JSON.stringify(votes)); updateVotes(); playClick(); vibrate(); };
+
+            // Retention + autofocus
+            window.addEventListener('beforeunload', e => { if (argumentsData.pro.length > 0 || argumentsData.con.length > 0) { e.preventDefault(); e.returnValue = ''; } });
+            window.addEventListener('load', () => setTimeout(() => ideaInput.focus(), 500));
+
+            // Init
+            applyTheme(localStorage.getItem('theme') !== 'light');
+            validationState = ['yes', 'no'].includes(localStorage.getItem('validation')) ? localStorage.getItem('validation') : null;
+            updateValidationUI();
+            const savedArgs = localStorage.getItem('arguments'); if (savedArgs) { try { const p = JSON.parse(savedArgs); if (p.pro && p.con) argumentsData = p; } catch {} }
+            ideaInput.value = currentIdea;
+            renderAllArguments(); updateProgress(); updateVerdict(); updateVotes();
+        })();
+    </script>
+</body>
+</html>
