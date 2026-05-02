@@ -4,4 +4,7 @@
     <option name="sdkName" value="Python 3.14 (Startup_)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.14 (Startup_)" project-jdk-type="Python SDK" />
+    <option name="sdkName" value="Python 3.13 (StartupStudio)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13 (StartupStudio)" project-jdk-type="Python SDK" />
 </project>
