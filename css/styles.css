@@ -618,11 +618,19 @@ h1 {
     cursor: pointer;
     transition: all 0.3s;
     letter-spacing: 1px;
+    animation: pulse-check 2s ease-in-out infinite;
+}
+@keyframes pulse-check {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 170, 0, 0.3); }
+    50% { box-shadow: 0 0 35px rgba(255, 170, 0, 0.6); }
 }
 
 .check-hypothesis-btn:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) scale(1.02);
     box-shadow: 0 15px 40px rgba(255, 170, 0, 0.4);
+}
+.check-hypothesis-btn:active {
+    transform: scale(0.98);
 }
 
 /* Share Section */
@@ -1038,7 +1046,7 @@ footer {
     height: 100%;
     background: linear-gradient(90deg, var(--yes-color), var(--accent));
     border-radius: 50px;
-    transition: width 0.5s;
+    transition: width 0.5s, background 0.5s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1097,3 +1105,118 @@ footer {
     .toast-container { left: 10px; right: 10px; }
     .toast { max-width: 100%; }
 }
+
+/* ===================== HYPOTHESIS MODAL ===================== */
+.hypothesis-modal-content {
+    max-width: 600px;
+}
+.hypothesis-step {
+    display: none;
+}
+.hypothesis-step.active {
+    display: block;
+}
+
+.hypothesis-progress-steps {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--card-border);
+    background: transparent;
+    transition: all 0.3s;
+}
+.step-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+.radio-option {
+    padding: 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+.radio-option:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+.radio-option input[type="radio"] {
+    accent-color: var(--accent);
+    width: auto;
+    margin: 0;
+}
+
+.hypothesis-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: space-between;
+}
+.hypothesis-nav .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #00ccff);
+    color: #0a0a0f;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+    flex: 1;
+}
+.hypothesis-nav .btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--accent-glow);
+}
+.hypothesis-nav .btn:not(.primary) {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--card-border);
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.hypothesis-nav .btn:not(.primary):hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: var(--accent-glow);
+}
+
+.survey-result-block {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 15px;
+    text-align: center;
+}
+.survey-result-block h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+.survey-result-block p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+

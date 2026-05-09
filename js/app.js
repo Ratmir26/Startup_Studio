@@ -1,10 +1,8 @@
 (function() {
-    // --- Audio Context for click sound ---
+    // --- Audio ---
     let audioCtx;
     function getAudioContext() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         return audioCtx;
     }
     function playClick() {
@@ -22,14 +20,11 @@
         } catch(e) {}
     }
 
-    // Haptic feedback
     function vibrate(ms = 50) {
-        if (navigator.vibrate) {
-            navigator.vibrate(ms);
-        }
+        if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    // --- Toast Notifications ---
+    // --- Toast ---
     const toastContainer = document.createElement('div');
     toastContainer.className = 'toast-container';
     document.body.appendChild(toastContainer);
@@ -39,14 +34,13 @@
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
         toastContainer.appendChild(toast);
-
         setTimeout(() => {
             toast.classList.add('removing');
             toast.addEventListener('animationend', () => toast.remove());
         }, duration);
     }
 
-    // --- Undo Bar ---
+    // --- Undo ---
     const undoBar = document.createElement('div');
     undoBar.className = 'undo-bar';
     undoBar.innerHTML = '<span id="undoText"></span><button class="undo-btn" id="undoBtn">ОТМЕНА</button>';
@@ -60,12 +54,7 @@
         document.getElementById('undoText').textContent = text;
         undoAction = action;
         undoBar.classList.add('visible');
-
-        document.getElementById('undoBtn').onclick = () => {
-            undoAction();
-            hideUndoBar();
-        };
-
+        document.getElementById('undoBtn').onclick = () => { undoAction(); hideUndoBar(); };
         undoTimeout = setTimeout(hideUndoBar, duration);
     }
 
@@ -78,19 +67,17 @@
     let isDark = true;
     let validationState = null;
     let currentIdea = localStorage.getItem('currentIdea') || '';
-    let argumentsData = {
-        pro: [],
-        con: []
-    };
-    let argumentWeights = {
-        pro: {},
-        con: {}
-    };
+    let argumentsData = { pro: [], con: [] };
+    let argumentWeights = { pro: {}, con: {} };
     let selectedCard = null;
     let selectedDelete = { type: null, index: null };
     let longPressTimer = null;
 
-    // DOM
+    // --- Hypothesis Survey ---
+    let surveyStep = 0;
+    let surveyAnswers = {};
+
+    // --- DOM ---
     const themeToggleBtn = document.getElementById('themeToggle');
     const validationToggle = document.getElementById('validationToggle');
     const proList = document.getElementById('proList');
@@ -109,8 +96,13 @@
     const confidenceText = document.getElementById('confidenceText');
     const ideaInput = document.getElementById('ideaInput');
     const charCounter = document.getElementById('charCounter');
+    const hypothesisModal = document.getElementById('hypothesisModal');
+    const audienceInput = document.getElementById('audienceInput');
+    const prevStepBtn = document.getElementById('prevStepBtn');
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const surveyResult = document.getElementById('surveyResult');
 
-    // --- Weight selector in modal ---
+    // --- Weight selector ---
     let selectedWeight = 'medium';
 
     function initWeightSelector() {
@@ -135,19 +127,14 @@
 
     // --- History ---
     function getHistory() {
-        try {
-            return JSON.parse(localStorage.getItem('ideaHistory') || '[]');
-        } catch {
-            return [];
-        }
+        try { return JSON.parse(localStorage.getItem('ideaHistory') || '[]'); } catch { return []; }
     }
 
     function saveToHistory() {
         const { verdict, score } = getVerdict();
         const entry = {
             idea: currentIdea || 'Без названия',
-            verdict,
-            score,
+            verdict, score,
             proCount: argumentsData.pro.length,
             conCount: argumentsData.con.length,
             savedAt: new Date().toISOString(),
@@ -180,7 +167,7 @@
         showToast('История очищена', 'info');
     }
 
-    // History Panel
+    // --- History Panel ---
     const historyPanel = document.createElement('div');
     historyPanel.className = 'history-panel';
     historyPanel.id = 'historyPanel';
@@ -211,7 +198,6 @@
                 <button class="history-close" id="historyClose">&times;</button>
             </h3>
         `;
-
         if (history.length === 0) {
             html += '<div class="history-empty">Пока нет сохранённых идей</div>';
         } else {
@@ -219,43 +205,31 @@
                 const date = new Date(entry.savedAt).toLocaleDateString('ru-RU', {
                     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                 });
-                const verdictEmoji = {
-                    'promising': '🚀',
-                    'weak': '❌',
-                    'uncertain': '⚖️'
-                };
+                const emoji = { promising: '🚀', weak: '❌', uncertain: '⚖️' };
                 html += `
                     <div class="history-item" data-idx="${idx}">
                         <div class="history-item-title">${escapeHtml(entry.idea)}</div>
                         <div class="history-item-meta">
                             <span>${date}</span>
-                            <span class="history-item-verdict">${verdictEmoji[entry.verdict] || '🤔'} ${entry.score > 0 ? '+' : ''}${entry.score}</span>
+                            <span class="history-item-verdict">${emoji[entry.verdict] || '🤔'} ${entry.score > 0 ? '+' : ''}${entry.score}</span>
                         </div>
                     </div>
                 `;
             });
         }
-
         html += `
             <div class="history-actions">
                 <button class="new-idea-btn" id="newIdeaBtn">+ Новая идея</button>
                 <button class="history-clear-btn" id="clearHistoryBtn">Очистить</button>
             </div>
         `;
-
         historyPanel.innerHTML = html;
 
         document.getElementById('historyClose').addEventListener('click', closeHistoryPanel);
         historyPanel.querySelectorAll('.history-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const idx = parseInt(item.dataset.idx);
-                loadFromHistory(history[idx]);
-            });
+            item.addEventListener('click', () => { loadFromHistory(history[parseInt(item.dataset.idx)]); });
         });
-        document.getElementById('newIdeaBtn').addEventListener('click', () => {
-            newIdea();
-            closeHistoryPanel();
-        });
+        document.getElementById('newIdeaBtn').addEventListener('click', () => { newIdea(); closeHistoryPanel(); });
         document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
     }
 
@@ -352,6 +326,7 @@
         document.body.classList.toggle('light-theme', !dark);
         themeToggleBtn.textContent = dark ? '☀️ СВЕТЛАЯ' : '🌙 ТЁМНАЯ';
     }
+
     function toggleTheme() {
         playClick(); vibrate();
         isDark = !isDark;
@@ -359,12 +334,13 @@
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
 
-    // --- Validation ---
+    // --- Validation Toggle ---
     function updateValidationUI() {
         validationToggle.classList.remove('yes-active', 'no-active');
         if (validationState === 'yes') validationToggle.classList.add('yes-active');
         else if (validationState === 'no') validationToggle.classList.add('no-active');
     }
+
     function toggleValidation() {
         playClick(); vibrate();
         if (validationState === null) validationState = 'yes';
@@ -380,7 +356,7 @@
     // --- Weight mapping ---
     const weightValues = { weak: 1, medium: 2, strong: 3 };
 
-    // --- Verdict Logic (weighted) ---
+    // --- Verdict Logic ---
     function getVerdict() {
         const proWeighted = argumentsData.pro.reduce((sum, _, i) => {
             return sum + (weightValues[argumentWeights.pro[String(i)]] || 2);
@@ -395,7 +371,7 @@
 
         let verdict, className, confidence, verdictKey;
         if (total === 0) {
-            verdict = '🤔 Добавь аргументы';
+            verdict = '🤔 Нужно больше данных';
             className = 'neutral';
             confidence = 'Нет данных';
             verdictKey = 'uncertain';
@@ -439,7 +415,7 @@
         verdictEl.textContent = verdict;
         verdictEl.className = className;
         scoreDisplay.textContent = (score > 0 ? '+' : '') + score;
-        confidenceText.textContent = `Статус: ${confidence}`;
+        if (confidenceText) confidenceText.textContent = `Статус: ${confidence}`;
     }
 
     // --- Render arguments ---
@@ -525,14 +501,10 @@
         });
     }
 
-    function saveArguments() {
-        localStorage.setItem('arguments', JSON.stringify(argumentsData));
-    }
+    function saveArguments() { localStorage.setItem('arguments', JSON.stringify(argumentsData)); }
+    function saveWeights() { localStorage.setItem('argumentWeights', JSON.stringify(argumentWeights)); }
 
-    function saveWeights() {
-        localStorage.setItem('argumentWeights', JSON.stringify(argumentWeights));
-    }
-
+    // --- Progress Bar ---
     function updateProgress() {
         const { score, proWeighted, conWeighted } = getVerdict();
         const total = proWeighted + conWeighted;
@@ -540,12 +512,23 @@
         progressBar.style.width = percent + '%';
         progressBar.textContent = percent + '%';
         progressPercent.textContent = percent + '%';
+
+        let color;
+        if (percent <= 33) {
+            color = 'linear-gradient(90deg, var(--no-color), var(--warning-color))';
+        } else if (percent <= 66) {
+            color = 'linear-gradient(90deg, var(--warning-color), var(--yes-color))';
+        } else {
+            color = 'linear-gradient(90deg, var(--yes-color), var(--accent))';
+        }
+        progressBar.style.background = color;
+
         proCountSpan.textContent = argumentsData.pro.length;
         conCountSpan.textContent = argumentsData.con.length;
         updateVerdict();
     }
 
-    // --- Delete with animation and undo ---
+    // --- Delete with undo ---
     function openDeleteConfirm(type, index, text) {
         playClick(); vibrate();
         selectedDelete = { type, index };
@@ -565,9 +548,7 @@
         const deletedText = argumentsData[type][index];
         const deletedWeight = argumentWeights[type][String(index)];
 
-        if (selectedCard && selectedCard.type === type && selectedCard.index === index) {
-            selectedCard = null;
-        }
+        if (selectedCard && selectedCard.type === type && selectedCard.index === index) selectedCard = null;
 
         argumentsData[type].splice(index, 1);
         const newWeights = {};
@@ -611,9 +592,7 @@
         }
         selectedCard = { type, index };
         const card = document.querySelector(`.argument-card[data-type="${type}"][data-index="${index}"]`);
-        if (card) {
-            card.classList.add('selected');
-        }
+        if (card) card.classList.add('selected');
         playClick(); vibrate(30);
     }
 
@@ -665,7 +644,7 @@
         playClick();
     }
 
-    // --- Single click to select ---
+    // --- Single click ---
     function handleSingleClick(e) {
         const card = e.target.closest('.argument-card');
         if (!card || card.classList.contains('removing')) return;
@@ -675,22 +654,19 @@
         selectCard(type, index);
     }
 
-    // --- Long press for mobile ---
+    // --- Long press ---
     function handleTouchStart(e) {
         const card = e.target.closest('.argument-card');
         if (!card) return;
         const type = card.dataset.type;
         const index = parseInt(card.dataset.index, 10);
         longPressTimer = setTimeout(() => {
-            const text = argumentsData[type][index];
-            openDeleteConfirm(type, index, text);
+            openDeleteConfirm(type, index, argumentsData[type][index]);
             vibrate(100);
         }, 600);
     }
 
-    function handleTouchEnd() {
-        clearTimeout(longPressTimer);
-    }
+    function handleTouchEnd() { clearTimeout(longPressTimer); }
 
     // --- Modal Add ---
     function openModal(presetType = 'pro') {
@@ -737,21 +713,93 @@
         showToast('Аргумент добавлен', 'success');
     }
 
+    // --- Hypothesis Survey ---
+    function openHypothesisModal() {
+        playClick(); vibrate();
+        surveyStep = 0;
+        surveyAnswers = {};
+        if (audienceInput) audienceInput.value = '';
+        document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+        updateSurveySteps();
+        hypothesisModal.classList.add('active');
+    }
+
+    function closeHypothesisModal() {
+        hypothesisModal.classList.remove('active');
+    }
+
+    function updateSurveySteps() {
+        document.querySelectorAll('.hypothesis-step').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
+        const target = surveyStep < 5 ? `.hypothesis-step[data-step="${surveyStep}"]` : '.hypothesis-step[data-step="result"]';
+        const stepDot = document.querySelector(`.step-dot[data-step="${Math.min(surveyStep, 4)}"]`);
+        const el = document.querySelector(target);
+        if (el) el.classList.add('active');
+        if (stepDot) stepDot.classList.add('active');
+        if (prevStepBtn) prevStepBtn.style.display = surveyStep > 0 ? 'inline-block' : 'none';
+        if (nextStepBtn) nextStepBtn.textContent = surveyStep >= 5 ? 'Завершить' : 'Далее →';
+    }
+
+    function nextStep() {
+        if (surveyStep === 0) {
+            const val = audienceInput ? audienceInput.value.trim() : '';
+            if (!val) { showToast('Введите целевую аудиторию', 'error'); return; }
+            surveyAnswers.audience = val;
+        } else if (surveyStep >= 1 && surveyStep <= 4) {
+            const names = ['frequency', 'payment', 'competitors', 'test'];
+            const selected = document.querySelector(`input[name="${names[surveyStep - 1]}"]:checked`);
+            if (!selected) { showToast('Выберите один из вариантов', 'error'); return; }
+            surveyAnswers[names[surveyStep - 1]] = parseInt(selected.value);
+        }
+        surveyStep++;
+        if (surveyStep > 5) { showSurveyResult(); return; }
+        updateSurveySteps();
+    }
+
+    function prevStep() {
+        if (surveyStep > 0) surveyStep--;
+        updateSurveySteps();
+    }
+
+    function showSurveyResult() {
+        updateSurveySteps();
+        const names = ['frequency', 'payment', 'competitors', 'test'];
+        const maxScore = 20;
+        let actualScore = 4;
+        names.forEach(n => { actualScore += surveyAnswers[n] || 0; });
+        actualScore = Math.min(actualScore, maxScore);
+        const percent = Math.round((actualScore / maxScore) * 100);
+        let emoji, text, color;
+        if (actualScore >= 16) {
+            emoji = '🚀'; text = 'Отличная идея для проверки!'; color = 'var(--yes-color)';
+        } else if (actualScore >= 11) {
+            emoji = '👍'; text = 'Хорошая идея, но есть вопросы'; color = 'var(--warning-color)';
+        } else if (actualScore >= 6) {
+            emoji = '⚠️'; text = 'Нужно больше исследований'; color = '#ff8800';
+        } else {
+            emoji = '🛑'; text = 'Пока рано, доработай идею'; color = 'var(--no-color)';
+        }
+        if (surveyResult) {
+            surveyResult.innerHTML = `
+                <h2>${emoji} ${actualScore}/${maxScore}</h2>
+                <p style="color:${color};font-weight:600;font-size:1.2rem;margin:10px 0;">${text}</p>
+                <p style="color:var(--text-secondary);">Целевая аудитория: ${surveyAnswers.audience || '—'}</p>
+                <div style="margin-top:15px;background:var(--bg-card);border-radius:8px;height:20px;overflow:hidden;">
+                    <div style="height:100%;width:${percent}%;background:${color};border-radius:8px;transition:width 0.5s;"></div>
+                </div>
+            `;
+        }
+    }
+
     // --- Idea Input ---
     function updateCharCounter() {
         const len = ideaInput.value.length;
         const max = 150;
         charCounter.textContent = `${len}/${max}`;
         charCounter.classList.remove('warn', 'error');
-        if (len > max) {
-            charCounter.classList.add('error');
-            ideaInput.classList.add('input-error');
-        } else if (len > max * 0.8) {
-            charCounter.classList.add('warn');
-            ideaInput.classList.remove('input-error');
-        } else {
-            ideaInput.classList.remove('input-error');
-        }
+        if (len > max) { charCounter.classList.add('error'); ideaInput.classList.add('input-error'); }
+        else if (len > max * 0.8) { charCounter.classList.add('warn'); ideaInput.classList.remove('input-error'); }
+        else { ideaInput.classList.remove('input-error'); }
     }
 
     ideaInput.addEventListener('input', () => {
@@ -781,21 +829,6 @@
         showToast('Новая идея начата', 'success');
     }
 
-    // --- Check Hypothesis ---
-    function checkHypothesis() {
-        playClick(); vibrate();
-        const idea = ideaInput.value.trim() || currentIdea;
-        const questions = [
-            'Кто твоя целевая аудитория?',
-            'Как часто люди сталкиваются с этой проблемой?',
-            'Сколько людей готовы платить за решение?',
-            'Есть ли уже конкуренты?',
-            'Можно ли проверить идею за неделю?'
-        ];
-        const randomQ = questions[Math.floor(Math.random() * questions.length)];
-        showToast(`Вопрос: ${randomQ}`, 'info', 5000);
-    }
-
     // --- Share / Export ---
     function shareIdea() {
         playClick();
@@ -805,50 +838,31 @@
             text: `Я проверяю идею: "${idea}". Помоги аргументами!`,
             url: window.location.href
         };
-        if (navigator.share) {
-            navigator.share(shareData).catch(() => copyToClipboard(shareData.text));
-        } else {
-            copyToClipboard(shareData.text);
-        }
+        if (navigator.share) navigator.share(shareData).catch(() => copyToClipboard(shareData.text));
+        else copyToClipboard(shareData.text);
     }
 
     function copyArgumentsToClipboard() {
         playClick(); vibrate();
         const idea = ideaInput.value.trim() || currentIdea || 'Моя идея';
-        const proText = argumentsData.pro.map((t, i) => {
-            const w = argumentWeights.pro[String(i)] || 'medium';
-            return `${i+1}. ${t} [${w}]`;
-        }).join('\n');
-        const conText = argumentsData.con.map((t, i) => {
-            const w = argumentWeights.con[String(i)] || 'medium';
-            return `${i+1}. ${t} [${w}]`;
-        }).join('\n');
+        const proText = argumentsData.pro.map((t, i) => `${i+1}. ${t} [${argumentWeights.pro[String(i)] || 'medium'}]`).join('\n');
+        const conText = argumentsData.con.map((t, i) => `${i+1}. ${t} [${argumentWeights.con[String(i)] || 'medium'}]`).join('\n');
         const { verdict } = getVerdict();
-        const full = `Идея: ${idea}\nВердикт: ${verdict}\n\nЗА:\n${proText}\n\nПРОТИВ:\n${conText}`;
-        copyToClipboard(full);
+        copyToClipboard(`Идея: ${idea}\nВердикт: ${verdict}\n\nЗА:\n${proText}\n\nПРОТИВ:\n${conText}`);
     }
 
     function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('Скопировано в буфер обмена!', 'success');
-        }).catch(() => {
-            showToast('Не удалось скопировать', 'error');
-        });
+        navigator.clipboard.writeText(text).then(() => showToast('Скопировано в буфер обмена!', 'success'))
+            .catch(() => showToast('Не удалось скопировать', 'error'));
     }
 
     function downloadTxt() {
         playClick(); vibrate();
         const idea = ideaInput.value.trim() || currentIdea || 'Моя идея';
-        const proLines = argumentsData.pro.map((t, i) => {
-            const w = argumentWeights.pro[String(i)] || 'medium';
-            return `+ [${w}] ${t}`;
-        });
-        const conLines = argumentsData.con.map((t, i) => {
-            const w = argumentWeights.con[String(i)] || 'medium';
-            return `- [${w}] ${t}`;
-        });
+        const proLines = argumentsData.pro.map(t => `+ ${t}`);
+        const conLines = argumentsData.con.map(t => `- ${t}`);
         const { verdict } = getVerdict();
-        const content = `Валидация идеи: "${idea}"\nВердикт: ${verdict}\n\nПОДТВЕРЖДАЕТ БОЛЬ:\n${proLines.join('\n')}\n\nЛОМАЕТ ИДЕЮ:\n${conLines.join('\n')}`;
+        const content = `Валидация идеи: "${idea}"\nВердикт: ${verdict}\n\nЗА:\n${proLines.join('\n')}\n\nПРОТИВ:\n${conLines.join('\n')}`;
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -863,14 +877,7 @@
         playClick(); vibrate();
         const idea = ideaInput.value.trim() || currentIdea || 'Моя идея';
         const { verdict, score, verdictKey } = getVerdict();
-        const data = {
-            idea,
-            validationState,
-            arguments: argumentsData,
-            weights: argumentWeights,
-            verdict: { text: verdict, score, key: verdictKey },
-            exportedAt: new Date().toISOString()
-        };
+        const data = { idea, validationState, arguments: argumentsData, weights: argumentWeights, verdict: { text: verdict, score, key: verdictKey }, exportedAt: new Date().toISOString() };
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -895,44 +902,33 @@
                     saveWeights();
                     renderAllArguments();
                     updateProgress();
-                    if (data.idea) {
-                        currentIdea = data.idea;
-                        ideaInput.value = data.idea;
-                        localStorage.setItem('currentIdea', data.idea);
-                    }
-                    if (data.validationState) {
-                        validationState = data.validationState;
-                        updateValidationUI();
-                        localStorage.setItem('validation', data.validationState);
-                    }
+                    if (data.idea) { currentIdea = data.idea; ideaInput.value = data.idea; localStorage.setItem('currentIdea', data.idea); }
+                    if (data.validationState) { validationState = data.validationState; updateValidationUI(); localStorage.setItem('validation', data.validationState); }
                     updateCharCounter();
                     showToast('Данные импортированы!', 'success');
-                } else {
-                    showToast('Неверный формат файла', 'error');
-                }
-            } catch(err) {
-                showToast('Ошибка чтения файла', 'error');
-            }
+                } else showToast('Неверный формат файла', 'error');
+            } catch(err) { showToast('Ошибка чтения файла', 'error'); }
         };
         reader.readAsText(file);
     }
 
     // --- Intersection Observer ---
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) entry.target.classList.add('visible');
-        });
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.1 });
 
     // --- Event Listeners ---
     themeToggleBtn.addEventListener('click', toggleTheme);
     validationToggle.addEventListener('click', toggleValidation);
 
-    document.getElementById('ctaBtn').addEventListener('click', () => {
-        playClick(); vibrate();
-        document.getElementById('ideaSection').scrollIntoView({ behavior: 'smooth' });
-        ideaInput.focus();
-    });
+    const ctaBtn = document.getElementById('ctaBtn');
+    if (ctaBtn) {
+        ctaBtn.addEventListener('click', () => {
+            playClick(); vibrate();
+            ideaInput.focus();
+            ideaInput.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
 
     document.querySelectorAll('.add-argument-btn').forEach(btn => {
         btn.addEventListener('click', () => openModal(btn.dataset.type));
@@ -940,15 +936,11 @@
 
     document.getElementById('addArgumentBtn').addEventListener('click', addArgumentFromModal);
     document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
-    argumentModal.addEventListener('click', (e) => {
-        if (e.target === argumentModal) closeModal();
-    });
+    argumentModal.addEventListener('click', (e) => { if (e.target === argumentModal) closeModal(); });
 
     document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
     document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteConfirm);
-    confirmDeleteModal.addEventListener('click', (e) => {
-        if (e.target === confirmDeleteModal) closeDeleteConfirm();
-    });
+    confirmDeleteModal.addEventListener('click', (e) => { if (e.target === confirmDeleteModal) closeDeleteConfirm(); });
 
     proList.addEventListener('click', handleSingleClick);
     conList.addEventListener('click', handleSingleClick);
@@ -980,15 +972,19 @@
         document.getElementById('importFileInput').click();
     });
     document.getElementById('importFileInput').addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            importJSON(e.target.files[0]);
-            e.target.value = '';
-        }
+        if (e.target.files[0]) { importJSON(e.target.files[0]); e.target.value = ''; }
     });
 
-    document.getElementById('checkHypothesisBtn').addEventListener('click', checkHypothesis);
+    document.getElementById('checkHypothesisBtn').addEventListener('click', openHypothesisModal);
 
-    // History toggle
+    if (nextStepBtn) nextStepBtn.addEventListener('click', nextStep);
+    if (prevStepBtn) prevStepBtn.addEventListener('click', prevStep);
+    if (hypothesisModal) {
+        hypothesisModal.addEventListener('click', (e) => {
+            if (e.target === hypothesisModal) closeHypothesisModal();
+        });
+    }
+
     document.getElementById('historyToggle').addEventListener('click', openHistoryPanel);
 
     // Keyboard shortcuts
@@ -996,26 +992,16 @@
         if (e.key === 'Escape') {
             if (argumentModal.classList.contains('active')) closeModal();
             if (confirmDeleteModal.classList.contains('active')) closeDeleteConfirm();
+            if (hypothesisModal && hypothesisModal.classList.contains('active')) closeHypothesisModal();
             if (historyPanel.classList.contains('open')) closeHistoryPanel();
         }
-        if (e.key === 'Enter' && argumentModal.classList.contains('active')) {
-            addArgumentFromModal();
-        }
+        if (e.key === 'Enter' && argumentModal.classList.contains('active')) addArgumentFromModal();
         if (e.key === 'Delete' && selectedCard && !argumentModal.classList.contains('active') && !confirmDeleteModal.classList.contains('active')) {
             const { type, index } = selectedCard;
-            if (argumentsData[type][index] !== undefined) {
-                openDeleteConfirm(type, index, argumentsData[type][index]);
-            }
+            if (argumentsData[type][index] !== undefined) openDeleteConfirm(type, index, argumentsData[type][index]);
         }
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            saveToHistory();
-            showToast('Сохранено в историю', 'success');
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-            e.preventDefault();
-            newIdea();
-        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveToHistory(); showToast('Сохранено в историю', 'success'); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newIdea(); }
     });
 
     // --- Init ---
@@ -1028,20 +1014,10 @@
     updateValidationUI();
 
     const savedArgs = localStorage.getItem('arguments');
-    if (savedArgs) {
-        try {
-            const parsed = JSON.parse(savedArgs);
-            if (parsed.pro && parsed.con) argumentsData = parsed;
-        } catch(e) {}
-    }
+    if (savedArgs) { try { const p = JSON.parse(savedArgs); if (p.pro && p.con) argumentsData = p; } catch(e) {} }
 
     const savedWeights = localStorage.getItem('argumentWeights');
-    if (savedWeights) {
-        try {
-            const parsed = JSON.parse(savedWeights);
-            if (parsed.pro && parsed.con) argumentWeights = parsed;
-        } catch(e) {}
-    }
+    if (savedWeights) { try { const p = JSON.parse(savedWeights); if (p.pro && p.con) argumentWeights = p; } catch(e) {} }
 
     ideaInput.value = currentIdea;
     updateCharCounter();
@@ -1050,7 +1026,5 @@
     updateProgress();
     updateVerdict();
 
-    if (!localStorage.getItem('visited')) {
-        setTimeout(showOnboarding, 500);
-    }
+    if (!localStorage.getItem('visited')) setTimeout(showOnboarding, 500);
 })();

@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <header>
             <div class="header-content">
                 <div class="logo-section">
@@ -29,13 +28,11 @@
             </div>
         </header>
 
-        <!-- Hero / Value Proposition -->
         <section class="hero-section">
             <p class="subtitle">Проверь свою идею за 2 минуты и пойми — она жизнеспособна или нет</p>
             <button class="cta-btn" id="ctaBtn">🚀 Начать валидацию</button>
         </section>
 
-        <!-- Idea Input -->
         <section class="idea-input-section" id="ideaSection">
             <label class="idea-label">ТВОЯ ИДЕЯ</label>
             <div class="idea-input-wrapper">
@@ -44,7 +41,6 @@
             </div>
         </section>
 
-        <!-- Problem Section -->
         <section class="problem-section">
             <h2 class="section-title">ПРОБЛЕМА</h2>
             <div class="problem-grid">
@@ -66,7 +62,6 @@
             </div>
         </section>
 
-        <!-- Validation Toggle -->
         <section class="validation-section">
             <div class="validation-toggle">
                 <span class="toggle-label">ПРОВЕРИЛ ЛИ?</span>
@@ -81,13 +76,11 @@
             </div>
         </section>
 
-        <!-- Verdict -->
         <section class="verdict-section">
             <div id="verdict" class="neutral">🤔 Нужно больше данных</div>
             <div class="confidence-indicator" id="confidenceText"></div>
         </section>
 
-        <!-- Arguments Section -->
         <section class="arguments-section">
             <h2 class="section-title">АРГУМЕНТЫ</h2>
             <div class="arguments-grid">
@@ -104,12 +97,10 @@
             </div>
         </section>
 
-        <!-- Check Hypothesis -->
         <section class="check-hypothesis-section">
             <button class="check-hypothesis-btn" id="checkHypothesisBtn">🔍 Проверить гипотезу (опрос)</button>
         </section>
 
-        <!-- Social Share -->
         <section class="share-section">
             <h2 class="section-title" style="margin-bottom: 30px;">ПОДЕЛИТЬСЯ / ЭКСПОРТ</h2>
             <div class="share-buttons">
@@ -122,7 +113,6 @@
             <input type="file" id="importFileInput" accept=".json" style="display: none;">
         </section>
 
-        <!-- Footer -->
         <footer>
             <div class="progress-container">
                 <div class="progress-label">
@@ -141,7 +131,6 @@
         </footer>
     </div>
 
-    <!-- Modal Add -->
     <div class="modal" id="argumentModal">
         <div class="modal-content">
             <h3>ДОБАВИТЬ АРГУМЕНТ</h3>
@@ -159,7 +148,6 @@
         </div>
     </div>
 
-    <!-- Modal Delete Confirm -->
     <div class="modal" id="confirmDeleteModal">
         <div class="modal-content" style="text-align: center;">
             <h3>Удалить аргумент?</h3>
@@ -167,6 +155,69 @@
             <div class="modal-buttons">
                 <button class="modal-btn confirm" id="confirmDeleteBtn" style="background: var(--no-color);">УДАЛИТЬ</button>
                 <button class="modal-btn cancel" id="cancelDeleteBtn">ОТМЕНА</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="hypothesisModal">
+        <div class="modal-content hypothesis-modal-content">
+            <h3>🔍 Проверка гипотезы</h3>
+            <div class="hypothesis-progress-steps">
+                <span class="step-dot active" data-step="0"></span>
+                <span class="step-dot" data-step="1"></span>
+                <span class="step-dot" data-step="2"></span>
+                <span class="step-dot" data-step="3"></span>
+                <span class="step-dot" data-step="4"></span>
+            </div>
+            <div class="hypothesis-step active" data-step="0">
+                <h4>Кто целевая аудитория?</h4>
+                <input type="text" id="audienceInput" placeholder="Например: школьники 14-18 лет" style="margin-top:10px;">
+            </div>
+            <div class="hypothesis-step" data-step="1">
+                <h4>Частота проблемы</h4>
+                <div class="radio-group">
+                    <label class="radio-option"><input type="radio" name="frequency" value="1"> Редко</label>
+                    <label class="radio-option"><input type="radio" name="frequency" value="2"> Иногда</label>
+                    <label class="radio-option"><input type="radio" name="frequency" value="3"> Часто</label>
+                    <label class="radio-option"><input type="radio" name="frequency" value="4"> Постоянно</label>
+                </div>
+            </div>
+            <div class="hypothesis-step" data-step="2">
+                <h4>Готовность платить</h4>
+                <div class="radio-group">
+                    <label class="radio-option"><input type="radio" name="payment" value="1"> Не готовы</label>
+                    <label class="radio-option"><input type="radio" name="payment" value="2"> Немногие готовы</label>
+                    <label class="radio-option"><input type="radio" name="payment" value="3"> Большинство готовы</label>
+                    <label class="radio-option"><input type="radio" name="payment" value="4"> Однозначно готовы</label>
+                </div>
+            </div>
+            <div class="hypothesis-step" data-step="3">
+                <h4>Конкуренты</h4>
+                <div class="radio-group">
+                    <label class="radio-option"><input type="radio" name="competitors" value="4"> Конкурентов нет</label>
+                    <label class="radio-option"><input type="radio" name="competitors" value="3"> Мало конкурентов</label>
+                    <label class="radio-option"><input type="radio" name="competitors" value="2"> Есть конкуренция</label>
+                    <label class="radio-option"><input type="radio" name="competitors" value="1"> Высокая конкуренция</label>
+                </div>
+            </div>
+            <div class="hypothesis-step" data-step="4">
+                <h4>Можно проверить за неделю?</h4>
+                <div class="radio-group">
+                    <label class="radio-option"><input type="radio" name="test" value="4"> Легко проверить</label>
+                    <label class="radio-option"><input type="radio" name="test" value="3"> Можно проверить</label>
+                    <label class="radio-option"><input type="radio" name="test" value="2"> Сложно проверить</label>
+                    <label class="radio-option"><input type="radio" name="test" value="1"> Невозможно проверить</label>
+                </div>
+            </div>
+            <div class="hypothesis-step" data-step="result">
+                <h4>Результат</h4>
+                <div class="survey-result-block" id="surveyResult">
+                    <p style="color:var(--text-secondary);">Заполните все шаги, чтобы получить результат</p>
+                </div>
+            </div>
+            <div class="hypothesis-nav">
+                <button class="btn" id="prevStepBtn" style="display:none;">← Назад</button>
+                <button class="btn primary" id="nextStepBtn">Далее →</button>
             </div>
         </div>
     </div>
